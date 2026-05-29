@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "Message": {
+      "title": "Message",
+      "description": "A single core LLM completion message in a thread",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "assistant", "system"] },
+        "content": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "modelUsed": { "type": "string" },
+        "isStreaming": { "type": "boolean" },
+        "error": { "type": "boolean" },
+        "fallbacked": { "type": "boolean" },
+        "originalModel": { "type": "string" }
+      },
+      "required": ["id", "role", "content", "timestamp"]
+    },
+    "ChatThread": {
+      "title": "ChatThread",
+      "description": "Metadata container for a single chat thread",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" }
+      },
+      "required": ["id", "title", "created_at", "userId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/threads/{threadId}": {
+      "schema": "ChatThread",
+      "description": "Discussion meta records for authenticated users"
+    },
+    "/users/{userId}/threads/{threadId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Individual ordered messages for an active discussion thread"
+    }
+  }
+}

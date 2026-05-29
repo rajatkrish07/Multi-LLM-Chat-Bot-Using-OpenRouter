@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Catch-all default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Rules for threads
+    match /users/{userId}/threads/{threadId} {
+      allow read, delete: if isOwner(userId);
+      
+      allow create: if isOwner(userId) 
+        && request.resource.data.keys().hasAll(['id', 'title', 'created_at', 'userId'])
+        && request.resource.data.keys().size() == 4
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.title is string 
+        && request.resource.data.title.size() <= 1000;
+      
+      allow update: if isOwner(userId)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.title is string 
+        && request.resource.data.title.size() <= 1000
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title']);
+      
+      // Messages subcollection elements
+      match /messages/{messageId} {
+        allow read, delete: if isOwner(userId);
+        
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasAll(['id', 'role', 'content', 'timestamp'])
+          && request.resource.data.role in ['user', 'assistant', 'system']
+          && request.resource.data.content is string
+          && request.resource.data.content.size() <= 100000;
+          
+        allow update: if isOwner(userId)
+          && request.resource.data.role in ['user', 'assistant', 'system']
+          && request.resource.data.content is string
+          && request.resource.data.content.size() <= 100000
+          && request.resource.data.diff(resource.data).affectedKeys().hasAny(['content', 'isStreaming', 'error', 'fallbacked', 'modelUsed', 'originalModel']);
+      }
+    }
+  }
+}

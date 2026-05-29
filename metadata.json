@@ -1,0 +1,6 @@
+{
+  "name": "ChatBuddy",
+  "description": "Your Personal Digital Assistant - Multi-LLM provider chatbot utilizing OpenRouter free tier models.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
