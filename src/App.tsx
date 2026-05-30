@@ -558,8 +558,15 @@ export default function App() {
         (err.message && err.message.toLowerCase().includes("unauthorized-domain")) ||
         (err.toString && err.toString().toLowerCase().includes("unauthorized-domain"));
         
+      const isInvalidApiKey = err.code === "auth/api-key-not-valid" ||
+        err.code === "auth/invalid-api-key" ||
+        (err.message && (err.message.toLowerCase().includes("api-key-not-valid") || err.message.toLowerCase().includes("invalid-api-key") || err.message.toLowerCase().includes("api key not valid"))) ||
+        (err.toString && (err.toString().toLowerCase().includes("api-key-not-valid") || err.toString().toLowerCase().includes("invalid-api-key") || err.toString().toLowerCase().includes("api key not valid")));
+
       if (isUnauthorizedDomain) {
         setAuthModalError("unauthorized-domain-instructions");
+      } else if (isInvalidApiKey) {
+        setAuthModalError("api-key-not-valid-instructions");
       } else {
         setAuthModalError(`Google Sign-In failed: ${err.message || err}`);
       }
@@ -1066,13 +1073,43 @@ export default function App() {
 
                 <ol className="text-[10px] space-y-2 leading-relaxed text-[#8a857c] dark:text-[#a09a8f] list-decimal list-outside pl-4.5 mb-4">
                   <li>
-                    Open your <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-amber-700 dark:text-amber-500 hover:underline font-semibold focus:outline-none">Firebase Console</a>.
+                    Open your <a href="https://console.firebase.google.com/project/chat-buddy-90ecb/authentication/providers" target="_blank" rel="noreferrer" className="text-amber-700 dark:text-amber-500 hover:underline font-semibold focus:outline-none">Firebase Console</a>.
                   </li>
                   <li>
                     Go to <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Authentication</strong> &gt; <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Settings</strong> &gt; <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Authorized Domains</strong>.
                   </li>
                   <li>
                     Click <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Add Domain</strong>, paste the copied domain above, and click Save.
+                  </li>
+                </ol>
+
+                <button
+                  onClick={() => setAuthModalError(null)}
+                  className="w-full py-1.5 border border-[#e5e2da] dark:border-[#2b2a26] bg-white dark:bg-[#1c1b19] hover:bg-[#faf9f4] dark:hover:bg-[#232220] rounded-lg text-[10px] font-bold text-center cursor-pointer transition-colors"
+                >
+                  Back to Sign-In
+                </button>
+              </div>
+            ) : authModalError === "api-key-not-valid-instructions" ? (
+              <div className="mb-5 bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/40 p-4 rounded-xl text-left text-xs text-[#1d1c1a] dark:text-[#f3f1ed]">
+                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-500 font-bold mb-2.5">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>Firebase API Key Setup Required</span>
+                </div>
+                
+                <p className="text-[11px] leading-relaxed text-[#5c5954] dark:text-[#c4c1b9] mb-3">
+                  Google’s authentication server thinks your API Key is not valid. This happens when the <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Identity Toolkit API</strong> service is not enabled for your custom Firebase project <strong className="text-amber-700 dark:text-amber-500">chat-buddy-90ecb</strong>.
+                </p>
+
+                <ol className="text-[10px] space-y-2.5 leading-relaxed text-[#8a857c] dark:text-[#a09a8f] list-decimal list-outside pl-4.5 mb-4">
+                  <li>
+                    Go to the <a href="https://console.cloud.google.com/apis/library/identitytoolkit.googleapis.com?project=chat-buddy-90ecb" target="_blank" rel="noreferrer" className="text-amber-700 dark:text-amber-500 hover:underline font-semibold focus:outline-none">Google Cloud Console API Library</a> for your project and click <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Enable</strong> for the <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Identity Toolkit API</strong>.
+                  </li>
+                  <li>
+                    Ensure Google Sign-In is enabled in your <a href="https://console.firebase.google.com/project/chat-buddy-90ecb/authentication/providers" target="_blank" rel="noreferrer" className="text-amber-700 dark:text-amber-500 hover:underline font-semibold focus:outline-none">Firebase Console Providers settings</a>.
+                  </li>
+                  <li>
+                    If you restricted your key inside <a href="https://console.cloud.google.com/apis/credentials?project=chat-buddy-90ecb" target="_blank" rel="noreferrer" className="text-amber-700 dark:text-amber-500 hover:underline font-semibold focus:outline-none">API Credentials</a>, ensure it maps to both <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Identity Toolkit API</strong> and <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Token Service API</strong>.
                   </li>
                 </ol>
 
