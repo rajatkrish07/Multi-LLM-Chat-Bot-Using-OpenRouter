@@ -43,6 +43,43 @@ import {
   deleteThreadFromFirestore 
 } from "./lib/threadService";
 
+// Beautiful custom orange-black CB Mixed inline SVG logo
+export const SiteLogo = ({ className = "h-6 w-6" }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 100 100" 
+    className={`${className} select-none shrink-0`} 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    {/* Background */}
+    <rect width="100" height="100" rx="22" fill="#141210" />
+    <rect width="100" height="100" rx="22" stroke="#f97316" strokeWidth="2.5" strokeOpacity="0.4" />
+    
+    <g transform="translate(14, 15)">
+      {/* Letter 'C' - Vibrant Orange */}
+      <path 
+        d="M 52 24 C 48 16, 38 12, 28 12 C 14 12, 4 22, 4 36 C 4 50, 14 60, 28 60 C 38 60, 48 56, 52 48" 
+        stroke="#f97316" 
+        strokeWidth="9.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+      />
+      {/* Letter 'B' - Elegant off-white style */}
+      <path 
+        d="M 28 12 H 44 C 54 12, 60 18, 60 26 C 60 32, 54 36, 44 36 H 28 H 46 C 56 36, 62 42, 62 50 C 62 58, 56 60, 46 60 H 28" 
+        stroke="#fbfaf7" 
+        strokeWidth="7" 
+        strokeLinecap="round" 
+        strokeLinejoin="round"
+        className="opacity-95"
+      />
+      
+      {/* Dynamic connection pip */}
+      <circle cx="28" cy="36" r="4" fill="#f97316" />
+    </g>
+  </svg>
+);
+
 const QUICK_STARTERS = [
   { label: "Summarize a concept", prompt: "Explain the difference between supervised and unsupervised learning in simple details." },
   { label: "Write a utility script", prompt: "Write a high-performance Python script that takes a list of URLs and checks their HTTP status code." },
@@ -75,6 +112,7 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalLoading, setAuthModalLoading] = useState(false);
   const [authModalError, setAuthModalError] = useState<string | null>(null);
+  const [copiedDomain, setCopiedDomain] = useState(false);
 
   // General state
   const [threads, setThreads] = useState<ChatThread[]>([]);
@@ -160,6 +198,15 @@ export default function App() {
 
   // Get active thread details
   const activeThread = threads.find((t) => t.id === activeThreadId);
+
+  // Dynamically update site browser tab title
+  useEffect(() => {
+    if (activeThread && activeThread.messages.length > 0) {
+      document.title = activeThread.title || "Chat Buddy";
+    } else {
+      document.title = "Chat Buddy";
+    }
+  }, [activeThread, activeThread?.title, activeThread?.messages]);
 
   // Auto-scroll inside chat lists
   useEffect(() => {
@@ -506,7 +553,16 @@ export default function App() {
       await signInWithPopup(auth, googleProvider);
       setIsAuthModalOpen(false);
     } catch (err: any) {
-      setAuthModalError(`Google Sign-In failed: ${err.message || err}`);
+      console.error("Firebase Sign-In Error Details:", err);
+      const isUnauthorizedDomain = err.code === "auth/unauthorized-domain" || 
+        (err.message && err.message.toLowerCase().includes("unauthorized-domain")) ||
+        (err.toString && err.toString().toLowerCase().includes("unauthorized-domain"));
+        
+      if (isUnauthorizedDomain) {
+        setAuthModalError("unauthorized-domain-instructions");
+      } else {
+        setAuthModalError(`Google Sign-In failed: ${err.message || err}`);
+      }
     } finally {
       setAuthModalLoading(false);
     }
@@ -533,11 +589,9 @@ export default function App() {
       >
         <div className="p-4 border-b border-[#f3f1eb] dark:border-[#201f1d] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-[#8b5cf6]/10 dark:bg-[#8b5cf6]/20 border border-[#8b5cf6]/20 dark:border-[#8b5cf6]/30 flex items-center justify-center text-[#8b5cf6] dark:text-[#a78bfa]">
-              <Sparkles className="h-4 w-4" />
-            </div>
+            <SiteLogo className="h-7 w-7 shadow-xs" />
             <span className="font-display font-bold text-sm tracking-tight text-[#1d1c1a] dark:text-[#fbfaf7]">
-              ChatBuddy Hub
+              Chat Buddy Hub
             </span>
           </div>
           <button 
@@ -739,19 +793,24 @@ export default function App() {
             )}
             
             {/* Show tiny active title when chat has started */}
-            {(activeThread && activeThread.messages.length > 0) && (
+            {(activeThread && activeThread.messages.length > 0) ? (
               <div className="flex items-center gap-2 animate-in fade-in slide-in-from-left-2 duration-250">
-                <div className="h-5 w-5 rounded-full bg-amber-500/15 dark:bg-amber-500/20 flex items-center justify-center text-amber-700 dark:text-amber-500">
-                  <Bot className="h-3 w-3" />
-                </div>
+                <SiteLogo className="h-5.5 w-5.5" />
                 <div>
-                  <h2 className="font-display font-bold text-xs text-[#1d1c1a] dark:text-[#f3f1ed]">
-                    ChatBuddy
+                  <h2 className="font-display font-bold text-xs text-[#1d1c1a] dark:text-[#f3f1ed] line-clamp-1 max-w-[150px] sm:max-w-[280px]">
+                    {activeThread.title || "Chat Buddy"}
                   </h2>
                   <p className="text-[10px] text-[#8a857c] dark:text-[#a09a8f] font-mono">
                     using {selectedModel.name.split(" ")[0]}
                   </p>
                 </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 animate-in fade-in duration-200">
+                <SiteLogo className="h-5.5 w-5.5" />
+                <span className="font-display font-bold text-xs text-[#1d1c1a] dark:text-[#f3f1ed]">
+                  Chat Buddy
+                </span>
               </div>
             )}
           </div>
@@ -810,14 +869,12 @@ export default function App() {
             /* CENTER STATE - Vertically and Horizontally centered Title, Tagline and Starter Panel */
             <div className="min-h-[70%] max-w-xl mx-auto flex flex-col items-center justify-center text-center py-10 px-4">
               <div className="relative mb-6">
-                <div className="absolute inset-x-0 -top-4 mx-auto w-24 h-24 bg-[#8b5cf6]/5 dark:bg-[#8b5cf6]/10 rounded-full filter blur-xl animate-pulse-slow" />
-                <div className="h-16 w-16 rounded-2xl bg-[#8b5cf6]/10 dark:bg-[#8b5cf6]/15 border border-[#8b5cf6]/20 dark:border-[#8b5cf6]/30 flex items-center justify-center text-[#8b5cf6] dark:text-[#a78bfa] mx-auto shadow-sm">
-                  <Bot className="h-9 w-9 stroke-[1.25]" />
-                </div>
+                <div className="absolute inset-x-0 -top-4 mx-auto w-24 h-24 bg-amber-500/5 dark:bg-amber-500/10 rounded-full filter blur-xl animate-pulse-slow" />
+                <SiteLogo className="h-16 w-16 mx-auto shadow-md relative z-10" />
               </div>
 
               <h1 className="font-display text-4xl sm:text-5xl font-bold text-[#1d1c1a] dark:text-[#fbfaf7] tracking-tight mb-2">
-                ChatBuddy
+                Chat Buddy
               </h1>
               <p className="font-sans text-xs md:text-sm text-amber-700 dark:text-amber-500 uppercase tracking-widest font-semibold mb-6">
                 Your Personal Digital Assistant
@@ -967,9 +1024,7 @@ export default function App() {
             </button>
 
             <div className="text-center mb-6">
-              <div className="h-12 w-12 rounded-xl bg-amber-500/10 dark:bg-amber-500/25 flex items-center justify-center text-amber-600 dark:text-[#d97706] mx-auto mb-3 border border-amber-500/20">
-                <LogIn className="h-5 w-5" />
-              </div>
+              <SiteLogo className="h-12 w-12 mx-auto mb-3 shadow-md" />
               <h3 className="font-display font-bold text-xl text-[#1d1c1a] dark:text-[#fbfaf7] tracking-tight">
                 Chat Buddy
               </h3>
@@ -981,12 +1036,59 @@ export default function App() {
               </p>
             </div>
 
-            {authModalError && (
+            {authModalError === "unauthorized-domain-instructions" ? (
+              <div className="mb-5 bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/40 p-4 rounded-xl text-left text-xs text-[#1d1c1a] dark:text-[#f3f1ed]">
+                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-500 font-bold mb-2.5">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>Domain Setup Required in Firebase</span>
+                </div>
+                
+                <p className="text-[11px] leading-relaxed text-[#5c5954] dark:text-[#c4c1b9] mb-3">
+                  To protect your users, Firebase blocks Google Sign-In popups on unauthorized hosting domains. You must authorize this domain in your project console:
+                </p>
+
+                <div className="p-2.5 rounded-lg bg-[#faf9f4] dark:bg-[#1f1e1c] border border-[#e5e2da] dark:border-[#2b2a26] mb-4.5 flex items-center justify-between gap-2.5 animate-in fade-in duration-200">
+                  <span className="font-mono text-[10px] break-all select-all font-semibold">
+                    {window.location.hostname}
+                  </span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.hostname);
+                      setCopiedDomain(true);
+                      setTimeout(() => setCopiedDomain(false), 2000);
+                    }}
+                    className="p-1 px-2 text-[10px] bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-md transition-colors cursor-pointer shrink-0"
+                    title="Copy hostname to clipboard"
+                  >
+                    {copiedDomain ? "✓ Copied" : "Copy"}
+                  </button>
+                </div>
+
+                <ol className="text-[10px] space-y-2 leading-relaxed text-[#8a857c] dark:text-[#a09a8f] list-decimal list-outside pl-4.5 mb-4">
+                  <li>
+                    Open your <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-amber-700 dark:text-amber-500 hover:underline font-semibold focus:outline-none">Firebase Console</a>.
+                  </li>
+                  <li>
+                    Go to <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Authentication</strong> &gt; <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Settings</strong> &gt; <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Authorized Domains</strong>.
+                  </li>
+                  <li>
+                    Click <strong className="text-[#5c5954] dark:text-[#c4c1b9]">Add Domain</strong>, paste the copied domain above, and click Save.
+                  </li>
+                </ol>
+
+                <button
+                  onClick={() => setAuthModalError(null)}
+                  className="w-full py-1.5 border border-[#e5e2da] dark:border-[#2b2a26] bg-white dark:bg-[#1c1b19] hover:bg-[#faf9f4] dark:hover:bg-[#232220] rounded-lg text-[10px] font-bold text-center cursor-pointer transition-colors"
+                >
+                  Back to Sign-In
+                </button>
+              </div>
+            ) : authModalError ? (
               <div className="mb-4 bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/30 text-rose-800 dark:text-rose-200 p-3 rounded-xl flex items-start gap-2.5 text-[11px]">
                 <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
                 <span className="flex-1">{authModalError}</span>
               </div>
-            )}
+            ) : null}
 
             <div className="space-y-4">
               <button
