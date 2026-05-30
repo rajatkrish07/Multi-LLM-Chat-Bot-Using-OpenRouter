@@ -1,10 +1,10 @@
 {
-  "projectId": "aqueous-topic-f71nt",
-  "appId": "1:838710183349:web:b2792c3d9a1803b74445fc",
-  "apiKey": "AIzaSyAVhf0-WVO7bQNBdEzkCaNYrgSzYAHxs4k",
-  "authDomain": "aqueous-topic-f71nt.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-62ec5976-eae9-43f5-b1f4-a17c25d19560",
-  "storageBucket": "aqueous-topic-f71nt.firebasestorage.app",
-  "messagingSenderId": "838710183349",
-  "measurementId": ""
+  "projectId": "chat-buddy-90ecb",
+  "appId": "1:61203474928:web:279db7cf1f2086d86b7603",
+  "apiKey": "AIzaSyA31A_jBgpHWgX9_1d6rIO5JtD_BbyiWOo",
+  "authDomain": "chat-buddy-90ecb.firebaseapp.com",
+  "firestoreDatabaseId": "(default)",
+  "storageBucket": "chat-buddy-90ecb.firebasestorage.app",
+  "messagingSenderId": "61203474928",
+  "measurementId": "G-8E30N6GSFV"
 }
